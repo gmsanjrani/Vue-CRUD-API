@@ -31,11 +31,11 @@
           </tr>
         </thead>
         <tbody id="mytable">
-          <tr v-for="user in users" :key="user.id">
-            <td>{{ user.id }}</td>
-            <td>{{ user.name }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.website }}</td>
+          <tr v-for="(user, index) in users" :key="user.id">
+            <td>{{ index + 1  }}</td>
+            <td>{{ user.attributes.name }}</td>
+            <td>{{ user.attributes.email }}</td>
+            <td>{{ user.attributes.website }}</td>
             <td>
               <button
                 type="button"
@@ -68,7 +68,6 @@ export default {
     return {
       users: [],
       formData: {
-        id: null,
         name: "",
         email: "",
         website: "",
@@ -79,14 +78,14 @@ export default {
   methods: {
     async deleteMessage(user) {
       await this.$swal({
-        title: `You wanna Delete this User: ${user.name}!`,
+        title: `You wanna Delete this User: ${user.attributes.name}!`,
         // showCloseButton: true,
         showCancelButton: true,
         cancelButtonText: "NO",
         confirmButtonText: "YES",
       });
       await axios.delete(
-        `https://jsonplaceholder.typicode.com/users/${user.id}`
+        `http://localhost:1337/api/peoples/${user.id}`
       );
       const newUsers = this.users.filter((u) => {
         return u.id !== user.id;
@@ -116,18 +115,25 @@ export default {
         },
       });
 
-      this.formData.id = this.users.length + 1;
+      // this.formData.id = this.users.length + 1;
       this.formData.name = x.value[0];
       this.formData.email = x.value[1];
       this.formData.website = x.value[2];
 
-      this.users.push(this.formData);
+      console.log(x.value[2])
+      // this.users.push(this.formData);
+      const len = this.users.length+1
+      console.log(len)
 
       const res = await axios.post(
-        "https://jsonplaceholder.typicode.com/users",
-        this.formData
+        "http://localhost:1337/api/peoples",
+        {
+          data:this.formData
+        }
       );
       console.log(res);
+
+      this.getUsers()
     },
 
 
@@ -136,9 +142,9 @@ export default {
         title: "Create user",
         html:
           `<input id="id" value="${user.id}" type="hidden">` +
-          `<input id="name" class="swal2-input" value="${user.name}" placeholder="Enter Name">` +
-          `<input id="email" class="swal2-input" value="${user.email}" placeholder="Enter Email">` +
-          `<input id="website" class="swal2-input" value="${user.website}" placeholder="Enter Website">`,
+          `<input id="name" class="swal2-input" value="${user.attributes.name}" placeholder="Enter Name">` +
+          `<input id="email" class="swal2-input" value="${user.attributes.email}" placeholder="Enter Email">` +
+          `<input id="website" class="swal2-input" value="${user.attributes.website}" placeholder="Enter Website">`,
         focusConfirm: false,
         showCancelButton: true,
         cancelButtonText: "Cancel",
@@ -155,28 +161,31 @@ export default {
 
       for (let i = 0; i < this.users.length; i++) {
         if (this.users[i].id == user.id) {
-          this.users[i].name = x.value[0]
-          this.users[i].email = x.value[1]
-          this.users[i].website = x.value[2]
+          this.users[i].attributes.name = x.value[0]
+          this.users[i].attributes.email = x.value[1]
+          this.users[i].attributes.website = x.value[2]
         }
       }
 
-      const res = await axios.put(`https://jsonplaceholder.typicode.com/users/${user.id}`,
-        {
-          name: x.value[0],
-          email: x.value[1],
-          website: x.value[2]
-        });
+      this.formData.name = x.value[0];
+      this.formData.email = x.value[1];
+      this.formData.website = x.value[2];
 
+      const res = await axios.put(`http://localhost:1337/api/peoples/${user.id}`,
+        {
+          data: this.formData
+        }
+      );
       console.log(res);
     },
 
     
     getUsers() {
       axios
-        .get("https://jsonplaceholder.typicode.com/users")
+        .get("http://localhost:1337/api/peoples")
         .then((res) => {
-          this.users = res.data;
+          console.log(res.data.data)
+          this.users = res.data.data
         })
         .catch((e) => console.log(e));
     },
